@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import HistogramChart from "./HistogramChart";
+import NonZeroTable from "./NoZeroTable";
 
-function App() {
+function EqualizationPage() {
   const [intensitasL, setIntensitasL] = useState(255); // L=256-1
   const [nilaiRk, setNilaiRk] = useState([]);
   const [histogramData, setHistogramData] = useState([]);
@@ -172,6 +173,7 @@ function App() {
               />
               <canvas ref={canvasRef} style={{ display: "none" }} />
             </div>
+            <NonZeroTable data={dataInput.martixBeforeEqualization}/>
             {/* {dataInput && console.table(dataInput)} */}
             {/* Menampilkan grafik hasil histogram equalization */}
             <div>
@@ -243,4 +245,4 @@ function App() {
   );
 }
 
-export default App;
+export default EqualizationPage;
