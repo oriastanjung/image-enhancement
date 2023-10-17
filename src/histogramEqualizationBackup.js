@@ -20,13 +20,7 @@ function cariSelisihTerdekat(target, arr) {
   return angkaTerdekat;
 }
 
-function performHistogramEqualization(
-  matrixGrayscalePixel,
-  L,
-  baris,
-  kolom,
-  imageData
-) {
+function performHistogramEqualization(matrixGrayscalePixel, L, baris, kolom, imageData) {
   console.log("matrix >> ", matrixGrayscalePixel);
   const hitungKdanRk = () => {
     let data = [];
@@ -35,17 +29,24 @@ function performHistogramEqualization(
     }
     return data;
   };
-  const kdanRk = hitungKdanRk();
+
   const handleHitungNk = () => {
     const dataKdanNk = Array(L).fill(0); // Inisialisasi array dengan nilai nol
     for (let i = 0; i < matrixGrayscalePixel.length; i++) {
-      dataKdanNk[matrixGrayscalePixel[i]]++;
+      for (let j = 0; j < matrixGrayscalePixel[i].length; j++) {
+        for (let k = 0; k <= L - 1; k++) {
+          if (matrixGrayscalePixel[i][j] === k) {
+            dataKdanNk[k]++;
+          }
+        }
+      }
     }
     return dataKdanNk;
   };
 
+  const kdanRk = hitungKdanRk();
   const nk = handleHitungNk();
-  // // Hitung PDF, SK, TR, dan PS
+  // Hitung PDF, SK, TR, dan PS
   const totalPixels = baris * kolom;
 
   const pdf = nk.map((n) => n / totalPixels);
@@ -56,43 +57,43 @@ function performHistogramEqualization(
     sk += p;
     return sk;
   });
-  const transformedPixelValues = cdf.map(cdfValue => Math.round((L - 1) * cdfValue));
-  // const ps = nk.map((n) => Math.round((n / totalPixels) * 100) / 100); // Bulatkan menjadi 2 desimal
 
-  // const pendekatanR = () => {
-  //   const data = [];
-  //   for (let k = 0; k < cdf.length; k++) {
-  //     const selisihTerdekat = cariSelisihTerdekat(cdf[k], kdanRk);
-  //     data[k] = selisihTerdekat;
-  //   }
-  //   return data;
-  // };
+  const ps = nk.map((n) => Math.round((n / totalPixels) * 100) / 100); // Bulatkan menjadi 2 desimal
 
-  // const NpendekatanR = () => {
-  //   const pendekatanRData = pendekatanR();
-  //   const data = Array(L).fill(0);
+  const pendekatanR = () => {
+    const data = [];
+    for (let k = 0; k < cdf.length; k++) {
+      const selisihTerdekat = cariSelisihTerdekat(cdf[k], kdanRk);
+      data[k] = selisihTerdekat;
+    }
+    return data;
+  };
 
-  //   for (let k = 0; k <= L - 1; k++) {
-  //     for (let i = 0; i < pendekatanRData.length; i++) {
-  //       if (pendekatanRData[i] === kdanRk[k]) {
-  //         data[k] += nk[i];
-  //       }
-  //     }
-  //   }
+  const NpendekatanR = () => {
+    const pendekatanRData = pendekatanR();
+    const data = Array(L).fill(0);
 
-  //   return data;
-  // };
+    for (let k = 0; k <= L - 1; k++) {
+      for (let i = 0; i < pendekatanRData.length; i++) {
+        if (pendekatanRData[i] === kdanRk[k]) {
+          data[k] += nk[i];
+        }
+      }
+    }
 
-  // const hitungPssk = () => {
-  //   const NpendekatanRData = NpendekatanR();
-  //   const data = Array(L).fill(0);
+    return data;
+  };
 
-  //   for (let k = 0; k <= L - 1; k++) {
-  //     data[k] = NpendekatanRData[k] / totalPixels;
-  //   }
+  const hitungPssk = () => {
+    const NpendekatanRData = NpendekatanR();
+    const data = Array(L).fill(0);
 
-  //   return data;
-  // };
+    for (let k = 0; k <= L - 1; k++) {
+      data[k] = NpendekatanRData[k] / totalPixels;
+    }
+
+    return data;
+  };
 
   const tableImg1 = {
     kdanRk,
@@ -100,10 +101,9 @@ function performHistogramEqualization(
     pdf,
     sk: cdf, // Distribusi kumulatif // cdf
     cdf, // cdf
-    matrixEqualization :transformedPixelValues 
-    // pendekatanR: pendekatanR(),
-    // ndariPendekatanR: NpendekatanR(), // Pixel equalization
-    // pssk: hitungPssk(),
+    pendekatanR: pendekatanR(),
+    ndariPendekatanR: NpendekatanR(), // Pixel equalization
+    pssk: hitungPssk(),
   };
 
   const roundedTableImg1 = {
@@ -115,14 +115,13 @@ function performHistogramEqualization(
     pdf: tableImg1.pdf.map((val) => Math.round(val * 100) / 100),
     sk: tableImg1.sk.map((val) => Math.round(val * 100) / 100),
     cdf: tableImg1.cdf.map((val) => Math.round(val * 100) / 100),
-    matrixEqualization : tableImg1.matrixEqualization.map((val) => Math.round(val * 100) / 100),
-    // pendekatanR: tableImg1.pendekatanR.map(
-    //   (val) => Math.round(val * 100) / 100
-    // ),
-    // ndariPendekatanR: tableImg1.ndariPendekatanR.map(
-    //   (val) => Math.round(val * 100) / 100
-    // ),
-    // pssk: tableImg1.pssk.map((val) => Math.round(val * 100) / 100),
+    pendekatanR: tableImg1.pendekatanR.map(
+      (val) => Math.round(val * 100) / 100
+    ),
+    ndariPendekatanR: tableImg1.ndariPendekatanR.map(
+      (val) => Math.round(val * 100) / 100
+    ),
+    pssk: tableImg1.pssk.map((val) => Math.round(val * 100) / 100),
   };
   console.log(roundedTableImg1);
   return roundedTableImg1;

@@ -65,8 +65,7 @@ function EqualizationPage() {
         martixBeforeEqualization: martixBeforeEqualization,
         matrixEqualization: equalizedValues,
       });
-      console.log("matriks grayscale >> ", dataInput)
-
+      console.log("matriks grayscale >> ", dataInput);
     };
   };
 
@@ -121,9 +120,9 @@ function EqualizationPage() {
       dataInput.kolom,
       dataInput.baris
     );
-    for (let i = 0; i < dataInput.matrixIntensitas.length; i++) {
+    for (let i = 0; i < dataInput.matrixEqualization.length; i++) {
       const pixelValue =
-        dataInput.matrixEqualization[dataInput.matrixIntensitas[i]];
+        dataInput.matrixEqualization[dataInput.matrixEqualization[i]];
       imageData.data[i * 4] = pixelValue; // R (merah)
       imageData.data[i * 4 + 1] = pixelValue; // G (hijau)
       imageData.data[i * 4 + 2] = pixelValue; // B (biru)
@@ -173,7 +172,7 @@ function EqualizationPage() {
               />
               <canvas ref={canvasRef} style={{ display: "none" }} />
             </div>
-            <NonZeroTable data={dataInput.martixBeforeEqualization}/>
+            {/* <NonZeroTable data={dataInput.martixBeforeEqualization} /> */}
             {/* {dataInput && console.table(dataInput)} */}
             {/* Menampilkan grafik hasil histogram equalization */}
             <div>
@@ -193,54 +192,13 @@ function EqualizationPage() {
               />
             </div>
           </div>
-          <div className="mt-16">
+          {/* <div className="mt-16">
             <h2>Equalized Image 1</h2>
             <canvas ref={outputCanvasRef} />
-          </div>
+          </div> */}
         </div>
       </div>
-      {/* //2 */}
-      <div className="container mx-auto mt-10">
-        <div>
-          <h1 className="text-center font-bold text-xl">
-            Gambar Spesifikasi
-          </h1>
-        </div>
-        <div className="flex flex-row items-start gap-10">
-          <div className="flex flex-col w-1/2">
-            <div className="mt-10">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
-              <canvas ref={canvasRef} style={{ display: "none" }} />
-            </div>
-            {/* {dataInput && console.table(dataInput)} */}
-            {/* Menampilkan grafik hasil histogram equalization */}
-            <div>
-              <h2>Matrix Before Image Histogram</h2>
-              <HistogramChart
-                data={dataInput.martixBeforeEqualization}
-                label="Frequency"
-                color="green"
-              />
-            </div>
-            <div>
-              <h2>Matrix After Image Histogram</h2>
-              <HistogramChart
-                data={dataInput.matrixEqualization}
-                label="Frequency"
-                color="green"
-              />
-            </div>
-          </div>
-          <div className="mt-16">
-            <h2>Equalized Image 1</h2>
-            <canvas ref={outputCanvasRef} />
-          </div>
-        </div>
-      </div>
+     
     </>
   );
 }
