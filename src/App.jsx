@@ -1,27 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import HistogramChart from "./HistogramChart";
+import { performHistogramEqualization } from "./histogramEqualization";
 
-function App() {
-  const [intensitasL, setIntensitasL] = useState(255); // L=256-1
-  const [nilaiRk, setNilaiRk] = useState([]);
-  const [histogramData, setHistogramData] = useState([]);
-
-  const [dataInput, setDataInput] = useState({
-    matrixIntensitas: [],
-    n: 0,
-    kolom: 0,
-    baris: 0,
-  });
-
+const App = () => {
+  const [roundedTableImg1, setRoundedTableImg1] = useState([[]]);
+  const [roundedTableImg2, setRoundedTableImg2] = useState([[]]);
+  const [imgInput, setImgInput] = useState("");
+  const [imgSpecification, setImgSpecification] = useState("");
   // Membuat referensi ke elemen <canvas> menggunakan useRef hook
-  const canvasRef = useRef(null);
-
-  const outputCanvasRef = useRef(null);
+  const canvasRef1 = useRef(null);
+  // Membuat referensi ke elemen <canvas> menggunakan useRef hook
+  const canvasRef2 = useRef(null);
 
   // Fungsi yang dipanggil ketika pengguna memilih file gambar
-  const handleImageUpload = (event) => {
+  const handleImageUpload1 = (event) => {
+    const { files } = event.target;
+    const file = files[0];
+    const imageUrl = URL.createObjectURL(file);
+    setImgInput(imageUrl);
     // Mengambil referensi elemen <canvas> dari canvasRef
-    const canvas = canvasRef.current;
+    const canvas = canvasRef1.current;
     // Mengambil konteks 2D untuk menggambar di atas canvas
     const ctx = canvas.getContext("2d");
 
@@ -41,7 +39,9 @@ function App() {
       // Mengambil data piksel dari canvas pada area gambar
       const imageData = ctx.getImageData(0, 0, image.width, image.height);
       // Membuat array kosong untuk menyimpan nilai intensitas grayscale
-      const grayscaleMatrix = [];
+      // Membuat matriks untuk menyimpan nilai intensitas grayscale dalam bentuk matriks 2D
+      const grayscaleMatrix = [[]];
+      let row = 0;
 
       // Loop melalui data piksel
       for (let i = 0; i < imageData.data.length; i += 4) {
@@ -50,142 +50,142 @@ function App() {
           (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) /
             3
         );
+
         // Memasukkan nilai intensitas grayscale ke dalam grayscaleMatrix
-        grayscaleMatrix.push(avg);
+        grayscaleMatrix[row].push(avg);
+
+        // Check if we have reached the end of a row
+        if (grayscaleMatrix[row].length === image.width) {
+          // Create a new row in the matrix
+          row++;
+          grayscaleMatrix.push([]);
+        }
       }
 
-      // Menghitung histogram equalization dan memanggil callback dengan nilai intensitas grayscale yang telah diubah
-      const equalizedValues = calculateHistogramEqualization(grayscaleMatrix);
-      const martixBeforeEqualization = matrixPDF(grayscaleMatrix);
-      setDataInput({
-        baris: image.height,
-        kolom: image.width,
-        matrixIntensitas: grayscaleMatrix,
-        martixBeforeEqualization: martixBeforeEqualization,
-        matrixEqualization: equalizedValues,
-      });
+      // Remove the last empty row (if any)
+      if (grayscaleMatrix[grayscaleMatrix.length - 1].length === 0) {
+        grayscaleMatrix.pop();
+      }
+
+      const equalizationData = performHistogramEqualization(
+        grayscaleMatrix,
+        256,
+        image.height,
+        image.width
+      );
+      setRoundedTableImg1(equalizationData);
     };
   };
 
-  // PDF
-  const matrixPDF = (grayscaleMatrix) => {
-    const histogram = new Array(256).fill(0);
+  // Fungsi yang dipanggil ketika pengguna memilih file gambar
+  const handleImageUpload2 = (event) => {
+    const { files } = event.target;
+    const file = files[0];
+    const imageUrl = URL.createObjectURL(file);
+    setImgSpecification(imageUrl);
+    // Mengambil referensi elemen <canvas> dari canvasRef
+    const canvas = canvasRef2.current;
+    // Mengambil konteks 2D untuk menggambar di atas canvas
+    const ctx = canvas.getContext("2d");
 
-    // PDF
-    // Menghitung histogram (jumlah kemunculan setiap nilai intensitas)
-    grayscaleMatrix.forEach((pixel, i) => {
-      histogram[pixel]++;
-    });
-    return histogram;
-  };
+    // Membuat objek gambar baru
+    const image = new Image();
+    // Mengatur sumber gambar menggunakan URL objek blob yang dihasilkan dari file gambar yang dipilih
+    image.src = URL.createObjectURL(event.target.files[0]);
 
-  // Fungsi untuk menghitung histogram equalization dari matriks intensitas grayscale
-  const calculateHistogramEqualization = (grayscaleMatrix) => {
-    const histogram = new Array(256).fill(0);
-    // PDF
-    // Menghitung histogram (jumlah kemunculan setiap nilai intensitas)
-    grayscaleMatrix.forEach((pixel) => {
-      histogram[pixel]++;
-    });
+    // Ketika gambar selesai dimuat
+    image.onload = () => {
+      // Mengatur ukuran elemen <canvas> sesuai dengan ukuran gambar
+      canvas.width = image.width;
+      canvas.height = image.height;
+      // Menggambar gambar di atas canvas
+      ctx.drawImage(image, 0, 0, image.width, image.height);
 
-    // Menghitung histogram kumulatif
-    const cumulativeHistogram = [];
-    let cumulativeSum = 0;
-    histogram.forEach((count) => {
-      cumulativeSum += count;
-      cumulativeHistogram.push(cumulativeSum);
-    });
+      // Mengambil data piksel dari canvas pada area gambar
+      const imageData = ctx.getImageData(0, 0, image.width, image.height);
+      // Membuat array kosong untuk menyimpan nilai intensitas grayscale
+      // Membuat matriks untuk menyimpan nilai intensitas grayscale dalam bentuk matriks 2D
+      const grayscaleMatrix = [[]];
+      let row = 0;
 
-    // Menghitung nilai intensitas grayscale yang diubah menggunakan histogram equalization
-    const equalizedValues = cumulativeHistogram.map((sum) =>
-      Math.round((sum * 255) / grayscaleMatrix.length)
-    );
+      // Loop melalui data piksel
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        // Menghitung rata-rata nilai merah, hijau, dan biru dari piksel, kemudian membulatkannya
+        const avg = Math.round(
+          (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) /
+            3
+        );
 
-    return equalizedValues;
-  };
+        // Memasukkan nilai intensitas grayscale ke dalam grayscaleMatrix
+        grayscaleMatrix[row].push(avg);
 
-  // Fungsi untuk menggambar gambar setelah equalisasi ke elemen canvas baru
-  const drawEqualizedImage = () => {
-    const outputCanvas = outputCanvasRef.current;
-    const outputCtx = outputCanvas.getContext("2d");
-
-    // Setel ukuran elemen canvas sesuai dengan gambar
-    outputCanvas.width = dataInput.kolom;
-    outputCanvas.height = dataInput.baris;
-
-    // Buat data gambar baru berdasarkan matriks intensitas setelah equalisasi
-    const imageData = outputCtx.createImageData(
-      dataInput.kolom,
-      dataInput.baris
-    );
-    for (let i = 0; i < dataInput.matrixIntensitas.length; i++) {
-      const pixelValue =
-        dataInput.matrixEqualization[dataInput.matrixIntensitas[i]];
-      imageData.data[i * 4] = pixelValue; // R (merah)
-      imageData.data[i * 4 + 1] = pixelValue; // G (hijau)
-      imageData.data[i * 4 + 2] = pixelValue; // B (biru)
-      imageData.data[i * 4 + 3] = 255; // A (alpha, 255 untuk opasitas penuh)
-    }
-
-    // Gambarkan data gambar ke elemen canvas baru
-    outputCtx.putImageData(imageData, 0, 0);
-  };
-  // Panggil fungsi drawEqualizedImage setelah dataInput.matrixEqualization berubah
-  useEffect(() => {
-    if (
-      dataInput.matrixEqualization &&
-      dataInput.matrixEqualization.length > 0
-    ) {
-      drawEqualizedImage();
-    }
-  }, [dataInput.matrixEqualization]);
-
-  useEffect(() => {
-    const initializeNilaiRk = () => {
-      let dataRk = [];
-      for (let k = 0; k <= intensitasL; k++) {
-        dataRk[k] = k / intensitasL;
+        // Check if we have reached the end of a row
+        if (grayscaleMatrix[row].length === image.width) {
+          // Create a new row in the matrix
+          row++;
+          grayscaleMatrix.push([]);
+        }
       }
-      setNilaiRk(dataRk);
+
+      // Remove the last empty row (if any)
+      if (grayscaleMatrix[grayscaleMatrix.length - 1].length === 0) {
+        grayscaleMatrix.pop();
+      }
+
+      const equalizationData = performHistogramEqualization(
+        grayscaleMatrix,
+        256,
+        image.height,
+        image.width
+      );
+      setRoundedTableImg2(equalizationData);
     };
-    initializeNilaiRk();
-  }, []);
+  };
 
   return (
-    <div className="container mx-auto mt-10">
-      <div>
-        <h1 className="text-center font-bold text-xl">
-          Histogram Equalization dengan L=256 {"(RGB)"}
-        </h1>
+    <>
+      <div className="p-5 flex justify-center">
+        <h1 className="font-bold text-xl">IMAGE ENHANCEMENT - HISTOGRAM SPECIFICATIONS</h1>
       </div>
-      <div className="mt-10">
-        <input type="file" accept="image/*" onChange={handleImageUpload} />
-        <canvas ref={canvasRef} style={{ display: "none" }} />
+      <div className="mb-16">
+        <div>
+          <input type="file" accept="image/*" onChange={handleImageUpload1} />
+          <canvas ref={canvasRef1} style={{ display: "none" }} />
+        </div>
+        <div className="flex flex-col items-center gap-5">
+          <p className="text-center">Image Input</p>
+          <div>{imgInput && <img src={imgInput} />}</div>
+        </div>
+        <div className="w-1/2 flex flex-col gap-5">
+          <h2>Matrix After Image Histogram</h2>
+          <HistogramChart
+            data={roundedTableImg1.ndariPendekatanR}
+            label="Frequency"
+            color="green"
+          />
+        </div>
       </div>
-      {/* {dataInput && console.table(dataInput)} */}
-      {/* Menampilkan grafik hasil histogram equalization */}
-      <div>
-        <h2>Matrix Before Image Histogram</h2>
-        <HistogramChart
-          data={dataInput.martixBeforeEqualization}
-          label="Frequency"
-          color="green"
-        />
+      <hr />
+      <div className="mt-16">
+        <div>
+          <input type="file" accept="image/*" onChange={handleImageUpload2} />
+          <canvas ref={canvasRef2} style={{ display: "none" }} />
+        </div>
+        <div className="flex flex-col items-center gap-5">
+          <p className="text-center">Image Specification</p>
+          {imgSpecification && <img src={imgSpecification} />}
+        </div>
+        <div className="w-1/2 flex flex-col gap-5">
+          <h2>Matrix After Image Histogram</h2>
+          <HistogramChart
+            data={roundedTableImg2.ndariPendekatanR}
+            label="Frequency"
+            color="green"
+          />
+        </div>
       </div>
-      <div>
-        <h2>Matrix After Image Histogram</h2>
-        <HistogramChart
-          data={dataInput.matrixEqualization}
-          label="Frequency"
-          color="green"
-        />
-      </div>
-      <div>
-        <h2>Equalized Image</h2>
-        <canvas ref={outputCanvasRef} />
-      </div>
-    </div>
+    </>
   );
-}
+};
 
 export default App;
