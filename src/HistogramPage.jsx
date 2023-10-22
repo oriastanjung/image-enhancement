@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import HistogramChart from "./HistogramChart";
 import { performHistogramEqualization } from "./histogramEqualization";
 import { performHistogramSpecification } from "./histogramSpecification";
+import Navbar from "./Navbar";
+import Footer from "./Footer";
 const HistogramPage = () => {
   const [roundedTableImg1, setRoundedTableImg1] = useState({});
   const [roundedTableImg2, setRoundedTableImg2] = useState({});
@@ -83,111 +85,101 @@ const HistogramPage = () => {
     };
   };
 
-  const canvasRefOutput = useRef(null);
-
   useEffect(() => {
     if (
       roundedTableImg1?.matrixEqualization &&
       roundedTableImg2?.matrixEqualization
     ) {
       setOutputImageTable(
-        performHistogramSpecification(roundedTableImg1, roundedTableImg2)
+        performHistogramSpecification(roundedTableImg1, roundedTableImg2, 256)
       );
     }
   }, [roundedTableImg1, roundedTableImg2]);
 
-  useEffect(() => {
-    if (outputImageTable) {
-      const canvas = canvasRefOutput.current;
-      canvas.width = roundedTableImg2.kolom; // Set the width to match the dimensions of the target image
-      canvas.height = roundedTableImg2.baris; // Set the height to match the dimensions of the target image
-      const ctx = canvas.getContext("2d");
-  
-      for (let i = 0; i < roundedTableImg2.baris; i++) {
-        for (let j = 0; j < roundedTableImg2.kolom; j++) {
-          const value = Math.round(outputImageTable[i * roundedTableImg2.kolom + j]);
-          ctx.fillStyle = `rgb(${value}, ${value}, ${value})`;
-          ctx.fillRect(j, i, 1, 1); // Draw a single pixel
-        }
-      }
-    }
-  }, [outputImageTable]);
-  
-
   return (
     <>
+      <Navbar />
       <div className="p-5 flex justify-center">
         <h1 className="font-bold text-xl">
           IMAGE ENHANCEMENT - HISTOGRAM SPECIFICATIONS
         </h1>
       </div>
-      <div className="flex p-10">
-        <div className="mb-16 w-full">
+      <div className="flex flex-col p-10">
+        <div className="mb-16 w-full bg-white px-6 py-4 rounded-xl border">
           <div>
-            <input type="file" accept="image/*" onChange={handleImageUpload1} />
+            <input className="font-thin" type="file" accept="image/*" onChange={handleImageUpload1} />
             <canvas ref={canvasRef1} style={{ display: "none" }} />
           </div>
-          <div className="flex flex-col items-center gap-5">
-            <p className="text-center">Image Input</p>
+          <div className="flex flex-col items-start gap-5">
+            <p className="text-left pt-10 font-semibold">Image Input : </p>
             <div className=" overflow-scroll max-h-[50vh]">
               {imgInput && <img src={imgInput} alt="Input" />}
             </div>
           </div>
+
           <div className="lg:w-1/2 flex flex-col gap-5">
-            <h2>Matrix After Image Histogram Equalization</h2>
+            <h2 className="pt-10 font-light">
+              Data After Image Histogram Equalization :
+            </h2>
             <HistogramChart
               data={roundedTableImg1.skDanNewNk} // Use cdf data for the chart
               label="Frequency"
               color="green"
             />
-            <p>
-              baris : {roundedTableImg1?.baris} | kolom :{" "}
+            <p className="font-light">
+              Baris : {roundedTableImg1?.baris} | Kolom :{" "}
               {roundedTableImg1?.kolom}
             </p>
           </div>
         </div>
-
-        <div className="mb-16 w-full">
+        <hr className="py-10" />
+        <div className="mb-16  w-full bg-white px-6 py-4 rounded-xl border">
           <div>
-            <input type="file" accept="image/*" onChange={handleImageUpload2} />
+            <input className="font-thin" type="file" accept="image/*" onChange={handleImageUpload2} />
             <canvas ref={canvasRef2} style={{ display: "none" }} />
           </div>
-          <div className="flex flex-col items-center gap-5">
-            <p className="text-center">Image Specification</p>
+          <div className="flex flex-col items-start gap-5">
+            <p className="text-left pt-10">Image References : </p>
             <div className=" overflow-scroll max-h-[50vh]">
               {imgSpecification && (
                 <img src={imgSpecification} alt="Specification" />
               )}
             </div>
           </div>
+
           <div className="lg:w-1/2 flex flex-col gap-5">
-            <h2>Matrix After Image Histogram Equalization</h2>
+            <h2 className="pt-10 font-light">
+              Data After Image Histogram Equalization :{" "}
+            </h2>
             <HistogramChart
               data={roundedTableImg2?.skDanNewNk} // Use cdf data for the chart
               label="Frequency"
               color="blue"
             />
+            <p className="font-light">
+              Baris : {roundedTableImg2?.baris} | Kolom :{" "}
+              {roundedTableImg2?.kolom}
+            </p>
           </div>
         </div>
       </div>
-      <div className="flex justify-center">
-        {outputImageTable ? (
-          <div className="lg:w-1/2 flex flex-col gap-5">
-            <h2>Matrix After Image Histogram Specification</h2>
-            <HistogramChart
-              data={outputImageTable}
-              label="Frequency"
-              color="blue"
-            />
-            <canvas
-              ref={canvasRefOutput}
-              style={{ border: "1px solid black" }}
-            />
-          </div>
-        ) : (
-          <p>Input the Source Image and The Target Image</p>
-        )}
+      <div className="px-10">
+        <div className="flex justify-start w-full bg-white px-6 py-4 rounded-xl border ">
+          {outputImageTable ? (
+            <div className="lg:w-1/2 flex flex-col gap-5">
+              <h2 className="font-semibold">Histogram Specification :</h2>
+              <HistogramChart
+                data={outputImageTable}
+                label="Frequency"
+                color="blue"
+              />
+            </div>
+          ) : (
+            <p className="font-semibold italic text-center w-full">Input the Source Image and The Reference Image First</p>
+          )}
+        </div>
       </div>
+      <Footer />
     </>
   );
 };
