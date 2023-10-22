@@ -71,7 +71,7 @@ const EqualizationPage = () => {
     <>
       <Navbar />
       <div className="p-5 flex justify-center">
-        <h1 className="font-bold text-xl">
+        <h1 className="font-bold text-center  text-lg md:text-xl">
           IMAGE ENHANCEMENT - HISTOGRAM EQUALIZATION
         </h1>
       </div>
